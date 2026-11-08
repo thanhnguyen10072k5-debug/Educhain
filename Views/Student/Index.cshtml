@@ -1,0 +1,259 @@
+@using Microsoft.AspNetCore.Identity
+@using Educhain.Models
+@inject UserManager<ApplicationUser> UserManager
+
+@model IEnumerable<Educhain.Models.Student>
+@{
+    Layout = null;
+    ViewData["Title"] = "Quản lý Sinh viên - EduChain";
+    var currentUser = await UserManager.GetUserAsync(User);
+    var displayName = currentUser?.FullName ?? User.Identity?.Name ?? "Quản trị viên";
+    var shortName = !string.IsNullOrEmpty(displayName) ? displayName.Substring(0, 1).ToUpper() : "A";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduChain | Quản lý sinh viên</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f4f7fb; color: #1e293b; }
+        .dashboard { display: flex; min-height: 100vh; }
+
+        /* SIDEBAR */
+        .sidebar { width: 255px; background: #111c35; color: white; padding: 28px 18px; flex-shrink: 0; }
+        .logo { display: flex; align-items: center; gap: 12px; padding: 0 12px; margin-bottom: 42px; }
+        .logo-icon { width: 43px; height: 43px; background: linear-gradient(135deg, #2586ff, #6257ed); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 23px; }
+        .logo h2 { font-size: 21px; font-weight: 800; }
+        .logo span { color: #55a5ff; }
+        .menu-title { color: #8290ad; font-size: 11px; font-weight: 700; letter-spacing: 1.3px; padding: 0 13px; margin: 25px 0 12px; }
+        .menu a, .menu button.logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 13px 14px;
+            color: #aebbd2;
+            text-decoration: none;
+            border-radius: 9px;
+            font-size: 13px;
+            margin-bottom: 5px;
+            transition: .2s;
+            background: none;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .menu a:hover,
+        .menu a.active,
+        .menu button.logout-btn:hover { background: #24385e; color: white; }
+        .menu a.active { border-left: 3px solid #4095ff; }
+        .menu-icon { font-size: 18px; width: 23px; text-align: center; }
+        .sidebar-bottom { margin-top: 65px; padding: 15px; background: #1b2a49; border-radius: 12px; }
+        .sidebar-bottom p { font-size: 12px; color: #b7c5dc; line-height: 1.7; }
+        .sidebar-bottom strong { color: #62aaff; }
+
+        /* MAIN */
+        .main { flex: 1; min-width: 0; }
+        .topbar { height: 78px; background: white; display: flex; align-items: center; justify-content: space-between; padding: 0 35px; border-bottom: 1px solid #e8edf5; }
+        .topbar h3 { font-size: 19px; }
+        .topbar p { font-size: 12px; color: #8491a5; margin-top: 5px; }
+        .admin { display: flex; align-items: center; gap: 12px; }
+        .avatar { width: 39px; height: 39px; border-radius: 50%; background: #e2edff; color: #2879e8; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+        .admin-info strong { display: block; font-size: 12px; }
+        .admin-info span { font-size: 11px; color: #8793a6; }
+
+        /* CONTENT */
+        .content { padding: 32px 35px; max-width: 1600px; margin: auto; }
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+        .search-box form { display: flex; gap: 10px; }
+        .search-box input { padding: 10px 16px; border: 1px solid #cbd5e1; border-radius: 8px; width: 280px; font-size: 14px; outline: none; transition: border-color .2s; }
+        .search-box input:focus { border-color: #2586ff; }
+        .btn { padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; border: none; transition: opacity .2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-primary { background: #2586ff; color: white; }
+        .btn-secondary { background: #e2e8f0; color: #334155; }
+        .btn-danger { background: #ef4444; color: white; padding: 7px 12px; font-size: 12px; }
+        .btn-edit { background: #f59e0b; color: white; padding: 7px 12px; font-size: 12px; }
+        
+        .table-panel { background: white; border-radius: 13px; border: 1px solid #edf0f6; padding: 23px; overflow: hidden; box-shadow: 0 3px 12px rgba(30, 50, 90, .025); }
+        .table-scroll { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 760px; }
+        th { background: #f8fafc; color: #64748b; text-align: left; font-size: 12px; font-weight: 600; padding: 14px; }
+        td { padding: 15px 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: middle; }
+        .code-tag { background: #eff6ff; color: #1d4ed8; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-family: monospace; font-size: 12px; }
+        .wallet-tag { font-family: monospace; background: #eef2ff; color: #4338ca; padding: 4px 8px; border-radius: 6px; font-size: 11px; }
+
+        /* RESPONSIVE */
+        @@media (max-width: 700px) {
+            .sidebar { width: 70px; padding: 20px 9px; }
+            .logo { padding: 0; justify-content: center; }
+            .logo h2, .menu-title, .menu a span:not(.menu-icon), .menu button.logout-btn span:not(.menu-icon), .sidebar-bottom { display: none; }
+            .menu a, .menu button.logout-btn { justify-content: center; padding: 14px 5px; }
+            .topbar { padding: 0 15px; }
+            .content { padding: 22px 15px; }
+            .admin-info { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">🎓</div>
+            <h2>Edu<span>Chain</span></h2>
+        </div>
+
+        <div class="menu-title">MENU CHÍNH</div>
+        <nav class="menu">
+            <a href="/Home/Index">
+                <span class="menu-icon">▦</span>
+                <span>Tổng quan</span>
+            </a>
+            <a href="/Student/Index" class="active">
+                <span class="menu-icon">👨‍🎓</span>
+                <span>Sinh viên</span>
+            </a>
+            <a href="#">
+                <span class="menu-icon">👨‍🏫</span>
+                <span>Giảng viên</span>
+            </a>
+            <a href="/Subject/Index">
+                <span class="menu-icon">📚</span>
+                <span>Môn học</span>
+            </a>
+            <a href="#">
+                <span class="menu-icon">📝</span>
+                <span>Quản lý điểm</span>
+            </a>
+        </nav>
+
+        <div class="menu-title">BLOCKCHAIN</div>
+        <nav class="menu">
+            <a href="#">
+                <span class="menu-icon">⛓️</span>
+                <span>Lịch sử Blockchain</span>
+            </a>
+            <a href="#">
+                <span class="menu-icon">🔐</span>
+                <span>Xác minh dữ liệu</span>
+            </a>
+        </nav>
+
+        <div class="menu-title">HỆ THỐNG</div>
+        <nav class="menu">
+            <a href="#">
+                <span class="menu-icon">⚙️</span>
+                <span>Cài đặt</span>
+            </a>
+            <form asp-controller="Account" asp-action="Logout" method="post" style="display: block; width: 100%;">
+                <button type="submit" class="logout-btn">
+                    <span class="menu-icon">🚪</span>
+                    <span>Đăng xuất</span>
+                </button>
+            </form>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <p>Hệ thống quản lý điểm</p>
+            <p><strong>EduChain v1.0</strong></p>
+            <p>Blockchain Technology</p>
+        </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+        <header class="topbar">
+            <div>
+                <h3>Danh sách sinh viên</h3>
+                <p>Quản lý dữ liệu định danh sinh viên</p>
+            </div>
+            <div class="admin">
+                <div class="avatar">@shortName</div>
+                <div class="admin-info">
+                    <strong>@displayName</strong>
+                    <span>@(User.IsInRole("Admin") ? "Quản trị viên" : (User.IsInRole("Teacher") ? "Giảng viên" : "Sinh viên"))</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="content">
+            <div class="header-actions">
+                <div class="search-box">
+                    <form method="get" asp-action="Index">
+                        <input type="text" name="searchString" value="@ViewData["CurrentFilter"]" placeholder="Tìm theo tên, mã SV, lớp..." />
+                        <button type="submit" class="btn btn-secondary">🔍 Tìm</button>
+                    </form>
+                </div>
+                <a href="/Student/Create" class="btn btn-primary">➕ Thêm sinh viên mới</a>
+            </div>
+
+            <div class="table-panel">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>MÃ SV</th>
+                                <th>HỌ VÀ TÊN</th>
+                                <th>LỚP</th>
+                                <th>NGÀNH HỌC</th>
+                                <th>VÍ BLOCKCHAIN</th>
+                                <th>THAO TÁC</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model == null || !Model.Any())
+                            {
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: #94a3b8; padding: 40px;">
+                                        Chưa có sinh viên nào trong hệ thống. Hãy bấm <b>"Thêm sinh viên mới"</b> để bắt đầu.
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td><span class="code-tag">@item.StudentCode</span></td>
+                                        <td>
+                                            <strong style="color: #0f172a;">@item.FullName</strong>
+                                            <div style="color: #64748b; font-size: 11px;">@item.Email</div>
+                                        </td>
+                                        <td>@(string.IsNullOrEmpty(item.ClassName) ? "-" : item.ClassName)</td>
+                                        <td>@(string.IsNullOrEmpty(item.Major) ? "-" : item.Major)</td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(item.WalletAddress))
+                                            {
+                                                <span class="wallet-tag">@item.WalletAddress.Substring(0, Math.Min(item.WalletAddress.Length, 10))...</span>
+                                            }
+                                            else
+                                            {
+                                                <span style="color: #94a3b8; font-size: 11px;">Chưa liên kết</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div style="display: flex; gap: 8px;">
+                                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-edit">✏️ Sửa</a>
+                                                <form asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sinh viên này khỏi hệ thống?');" style="display:inline;">
+                                                    <button type="submit" class="btn btn-danger">🗑️ Xóa</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>

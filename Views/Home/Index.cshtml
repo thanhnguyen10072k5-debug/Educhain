@@ -1,0 +1,918 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Educhain.Models
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+
+@{
+    Layout = null;
+    ViewData["Title"] = "EduChain - Dashboard";
+    var currentUser = await UserManager.GetUserAsync(User);
+    var displayName = currentUser?.FullName ?? User.Identity?.Name ?? "Quản trị viên";
+    var shortName = !string.IsNullOrEmpty(displayName) ? displayName.Substring(0, 1).ToUpper() : "A";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduChain | Dashboard</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f4f7fb;
+            color: #1e293b;
+        }
+
+        .dashboard {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 255px;
+            background: #111c35;
+            color: white;
+            padding: 28px 18px;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 12px;
+            margin-bottom: 42px;
+        }
+
+        .logo-icon {
+            width: 43px;
+            height: 43px;
+            background: linear-gradient(135deg, #2586ff, #6257ed);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 23px;
+        }
+
+        .logo h2 {
+            font-size: 21px;
+            font-weight: 800;
+        }
+
+        .logo span {
+            color: #55a5ff;
+        }
+
+        .menu-title {
+            color: #8290ad;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.3px;
+            padding: 0 13px;
+            margin: 25px 0 12px;
+        }
+
+        .menu a, .menu button.logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 13px 14px;
+            color: #aebbd2;
+            text-decoration: none;
+            border-radius: 9px;
+            font-size: 13px;
+            margin-bottom: 5px;
+            transition: .2s;
+            background: none;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .menu a:hover,
+        .menu a.active,
+        .menu button.logout-btn:hover {
+            background: #24385e;
+            color: white;
+        }
+
+        .menu a.active {
+            border-left: 3px solid #4095ff;
+        }
+
+        .menu-icon {
+            font-size: 18px;
+            width: 23px;
+            text-align: center;
+        }
+
+        .sidebar-bottom {
+            margin-top: 65px;
+            padding: 15px;
+            background: #1b2a49;
+            border-radius: 12px;
+        }
+
+        .sidebar-bottom p {
+            font-size: 12px;
+            color: #b7c5dc;
+            line-height: 1.7;
+        }
+
+        .sidebar-bottom strong {
+            color: #62aaff;
+        }
+
+        /* MAIN */
+        .main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .topbar {
+            height: 78px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 35px;
+            border-bottom: 1px solid #e8edf5;
+        }
+
+        .topbar h3 {
+            font-size: 19px;
+        }
+
+        .topbar p {
+            font-size: 12px;
+            color: #8491a5;
+            margin-top: 5px;
+        }
+
+        .admin {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 39px;
+            height: 39px;
+            border-radius: 50%;
+            background: #e2edff;
+            color: #2879e8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+        }
+
+        .admin-info strong {
+            display: block;
+            font-size: 12px;
+        }
+
+        .admin-info span {
+            font-size: 11px;
+            color: #8793a6;
+        }
+
+        /* CONTENT */
+        .content {
+            padding: 32px 35px;
+            max-width: 1600px;
+            margin: auto;
+        }
+
+        .welcome {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 27px;
+            gap: 15px;
+        }
+
+        .welcome h1 {
+            font-size: 25px;
+            margin-bottom: 9px;
+        }
+
+        .welcome p {
+            color: #8793a6;
+            font-size: 13px;
+        }
+
+        .date {
+            padding: 12px 17px;
+            background: white;
+            border: 1px solid #e8edf5;
+            border-radius: 9px;
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        /* STATISTICS */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 19px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 22px;
+            border-radius: 13px;
+            border: 1px solid #edf0f6;
+            box-shadow: 0 3px 12px rgba(30, 50, 90, .025);
+        }
+
+        .stat-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .stat-icon {
+            width: 43px;
+            height: 43px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+        }
+
+        .blue { background: #e8f1ff; }
+        .purple { background: #f0eaff; }
+        .orange { background: #fff1df; }
+        .green { background: #e3f8ed; }
+
+        .stat-card p {
+            color: #8290a5;
+            font-size: 12px;
+        }
+
+        .stat-card h2 {
+            font-size: 28px;
+            margin-top: 7px;
+        }
+
+        .stat-note {
+            color: #17a66a;
+            font-size: 11px;
+            margin-top: 9px;
+        }
+
+        /* GRID */
+        .middle-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 20px;
+            margin-bottom: 23px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 13px;
+            border: 1px solid #edf0f6;
+            padding: 23px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .panel-header h3 {
+            font-size: 15px;
+        }
+
+        .panel-header a {
+            color: #347fe4;
+            font-size: 11px;
+            text-decoration: none;
+        }
+
+        /* CHART */
+        .chart {
+            height: 200px;
+            display: flex;
+            align-items: end;
+            justify-content: space-around;
+            gap: 15px;
+            border-bottom: 1px solid #e9eef5;
+            padding: 0 10px;
+        }
+
+        .chart-item {
+            height: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: end;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .bar {
+            width: 65%;
+            max-width: 38px;
+            background: linear-gradient(180deg, #4d9bff, #3274e6);
+            border-radius: 6px 6px 0 0;
+        }
+
+        .chart-item span {
+            font-size: 10px;
+            color: #8b98aa;
+            margin-bottom: -20px;
+            position: relative;
+            top: 25px;
+        }
+
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 35px;
+            color: #8290a5;
+            font-size: 11px;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #438df0;
+        }
+
+        /* BLOCKCHAIN */
+        .chain-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #e9f9f0;
+            padding: 14px;
+            border-radius: 9px;
+            margin-bottom: 20px;
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            background: #19b66c;
+            border-radius: 50%;
+        }
+
+        .chain-status strong {
+            color: #15945b;
+            font-size: 12px;
+        }
+
+        .chain-status span {
+            color: #5b9478;
+            font-size: 10px;
+            display: block;
+            margin-top: 4px;
+        }
+
+        .chain-item {
+            padding: 14px 0;
+            border-bottom: 1px solid #edf0f5;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .chain-item strong {
+            font-size: 11px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .chain-item small {
+            font-size: 10px;
+            color: #8a96a8;
+        }
+
+        .verified {
+            color: #16a36a;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        /* TABLE */
+        .table-panel {
+            background: white;
+            border-radius: 13px;
+            border: 1px solid #edf0f6;
+            padding: 23px;
+            overflow: hidden;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 570px;
+        }
+
+        th {
+            background: #f7f9fc;
+            color: #8390a4;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 14px;
+        }
+
+        td {
+            padding: 15px 14px;
+            border-bottom: 1px solid #edf0f5;
+            font-size: 12px;
+        }
+
+        .student {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .student-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: #e7f0ff;
+            color: #377fe5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .student-name strong {
+            display: block;
+            font-size: 11px;
+        }
+
+        .student-name small {
+            color: #8995a7;
+            font-size: 10px;
+        }
+
+        .score {
+            color: #159b64;
+            font-weight: 700;
+        }
+
+        .footer {
+            text-align: center;
+            color: #9aa5b5;
+            font-size: 11px;
+            padding: 25px;
+        }
+
+        /* RESPONSIVE */
+        @@media (max-width: 1050px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .middle-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@media (max-width: 700px) {
+            .sidebar {
+                width: 70px;
+                padding: 20px 9px;
+            }
+
+            .logo {
+                padding: 0;
+                justify-content: center;
+            }
+
+            .logo h2,
+            .menu-title,
+            .menu a span:not(.menu-icon),
+            .sidebar-bottom {
+                display: none;
+            }
+
+            .menu a, .menu button.logout-btn {
+                justify-content: center;
+                padding: 14px 5px;
+            }
+
+            .topbar {
+                padding: 0 15px;
+            }
+
+            .content {
+                padding: 22px 15px;
+            }
+
+            .stats {
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 14px;
+            }
+
+            .stat-card h2 {
+                font-size: 23px;
+            }
+
+            .welcome h1 {
+                font-size: 19px;
+            }
+
+            .date {
+                display: none;
+            }
+
+            .admin-info {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="logo">
+            <div class="logo-icon">🎓</div>
+            <h2>Edu<span>Chain</span></h2>
+        </div>
+
+        <div class="menu-title">MENU CHÍNH</div>
+
+        <nav class="menu">
+            <a href="/Home/Index" class="active">
+                <span class="menu-icon">▦</span>
+                <span>Tổng quan</span>
+            </a>
+
+            <a href="/Student/Index">
+                <span class="menu-icon">👨‍🎓</span>
+                <span>Sinh viên</span>
+            </a>
+
+            <a href="#">
+                <span class="menu-icon">👨‍🏫</span>
+                <span>Giảng viên</span>
+            </a>
+
+            <a href="/Subject/Index">
+                <span class="menu-icon">📚</span>
+                <span>Môn học</span>
+            </a>
+
+            <a href="#">
+                <span class="menu-icon">📝</span>
+                <span>Quản lý điểm</span>
+            </a>
+        </nav>
+
+        <div class="menu-title">BLOCKCHAIN</div>
+
+        <nav class="menu">
+            <a href="#">
+                <span class="menu-icon">⛓️</span>
+                <span>Lịch sử Blockchain</span>
+            </a>
+
+            <a href="#">
+                <span class="menu-icon">🔐</span>
+                <span>Xác minh dữ liệu</span>
+            </a>
+        </nav>
+
+        <div class="menu-title">HỆ THỐNG</div>
+
+        <nav class="menu">
+            <a href="#">
+                <span class="menu-icon">⚙️</span>
+                <span>Cài đặt</span>
+            </a>
+
+            <form asp-controller="Account" asp-action="Logout" method="post" style="display: block; width: 100%;">
+                <button type="submit" class="logout-btn">
+                    <span class="menu-icon">🚪</span>
+                    <span>Đăng xuất</span>
+                </button>
+            </form>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <p>Hệ thống quản lý điểm</p>
+            <p><strong>EduChain v1.0</strong></p>
+            <p>Blockchain Technology</p>
+        </div>
+
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <header class="topbar">
+            <div>
+                <h3>Tổng quan hệ thống</h3>
+                <p>Chào mừng bạn đến với EduChain</p>
+            </div>
+
+            <div class="admin">
+                <div class="avatar">@shortName</div>
+                <div class="admin-info">
+                    <strong>@displayName</strong>
+                    <span>@(User.IsInRole("Admin") ? "Quản trị viên" : (User.IsInRole("Teacher") ? "Giảng viên" : "Sinh viên"))</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="content">
+
+            <!-- WELCOME -->
+            <section class="welcome">
+                <div>
+                    <h1>Xin chào, @displayName! 👋</h1>
+                    <p>Dưới đây là tình hình tổng quan của hệ thống EduChain.</p>
+                </div>
+
+                <div class="date">📅 Năm học 2026 - 2027</div>
+            </section>
+
+            <!-- STATISTICS -->
+            <section class="stats">
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon blue">👨‍🎓</div>
+                    </div>
+                    <p>Tổng số sinh viên</p>
+                    <h2>1,250</h2>
+                    <div class="stat-note">↑ 12% so với học kỳ trước</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon purple">👨‍🏫</div>
+                    </div>
+                    <p>Tổng số giảng viên</p>
+                    <h2>85</h2>
+                    <div class="stat-note">↑ 5% so với học kỳ trước</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon orange">📚</div>
+                    </div>
+                    <p>Tổng số môn học</p>
+                    <h2>42</h2>
+                    <div class="stat-note">Đang hoạt động</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-top">
+                        <div class="stat-icon green">📝</div>
+                    </div>
+                    <p>Bảng điểm đã ghi nhận</p>
+                    <h2>3,680</h2>
+                    <div class="stat-note">Dữ liệu minh họa</div>
+                </div>
+
+            </section>
+
+            <!-- MIDDLE -->
+            <section class="middle-grid">
+
+                <!-- CHART -->
+                <div class="panel">
+
+                    <div class="panel-header">
+                        <h3>📊 Thống kê điểm sinh viên</h3>
+                        <a href="#">Xem chi tiết →</a>
+                    </div>
+
+                    <div class="chart">
+
+                        <div class="chart-item">
+                            <div class="bar" style="height:45%"></div>
+                            <span>Tháng 1</span>
+                        </div>
+
+                        <div class="chart-item">
+                            <div class="bar" style="height:65%"></div>
+                            <span>Tháng 2</span>
+                        </div>
+
+                        <div class="chart-item">
+                            <div class="bar" style="height:55%"></div>
+                            <span>Tháng 3</span>
+                        </div>
+
+                        <div class="chart-item">
+                            <div class="bar" style="height:80%"></div>
+                            <span>Tháng 4</span>
+                        </div>
+
+                        <div class="chart-item">
+                            <div class="bar" style="height:70%"></div>
+                            <span>Tháng 5</span>
+                        </div>
+
+                        <div class="chart-item">
+                            <div class="bar" style="height:95%"></div>
+                            <span>Tháng 6</span>
+                        </div>
+
+                    </div>
+
+                    <div class="chart-legend">
+                        <div class="legend-dot"></div>
+                        Số lượng điểm đã cập nhật
+                    </div>
+
+                </div>
+
+                <!-- BLOCKCHAIN -->
+                <div class="panel">
+
+                    <div class="panel-header">
+                        <h3>⛓️ Trạng thái Blockchain</h3>
+                        <a href="#">Chi tiết →</a>
+                    </div>
+
+                    <div class="chain-status">
+                        <div class="status-dot"></div>
+                        <div>
+                            <strong>Giao diện mô phỏng</strong>
+                            <span>Chưa kết nối Smart Contract</span>
+                        </div>
+                    </div>
+
+                    <div class="chain-item">
+                        <div>
+                            <strong>Smart Contract</strong>
+                            <small>Chưa triển khai</small>
+                        </div>
+                        <span class="verified">Chờ kết nối</span>
+                    </div>
+
+                    <div class="chain-item">
+                        <div>
+                            <strong>MetaMask</strong>
+                            <small>Ví Blockchain</small>
+                        </div>
+                        <span class="verified">Chờ kết nối</span>
+                    </div>
+
+                    <div class="chain-item">
+                        <div>
+                            <strong>Lịch sử giao dịch</strong>
+                            <small>Transaction History</small>
+                        </div>
+                        <span class="verified">Chưa có dữ liệu</span>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- STUDENTS TABLE -->
+            <section class="table-panel" id="students">
+
+                <div class="panel-header">
+                    <h3>👨‍🎓 Danh sách điểm sinh viên gần đây</h3>
+                    <a href="/Student/Index">Xem tất cả →</a>
+                </div>
+
+                <div class="table-scroll">
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>SINH VIÊN</th>
+                                <th>MÃ SINH VIÊN</th>
+                                <th>MÔN HỌC</th>
+                                <th>ĐIỂM</th>
+                                <th>TRẠNG THÁI</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            <tr>
+                                <td>
+                                    <div class="student">
+                                        <div class="student-avatar">NA</div>
+                                        <div class="student-name">
+                                            <strong>Nguyễn An</strong>
+                                            <small>Sinh viên</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>SV001</td>
+                                <td>Cơ sở dữ liệu</td>
+                                <td class="score">8.5</td>
+                                <td class="verified">Đã cập nhật</td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    <div class="student">
+                                        <div class="student-avatar">TB</div>
+                                        <div class="student-name">
+                                            <strong>Trần Bình</strong>
+                                            <small>Sinh viên</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>SV002</td>
+                                <td>Lập trình Web</td>
+                                <td class="score">9.0</td>
+                                <td class="verified">Đã cập nhật</td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    <div class="student">
+                                        <div class="student-avatar">LC</div>
+                                        <div class="student-name">
+                                            <strong>Lê Chi</strong>
+                                            <small>Sinh viên</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>SV003</td>
+                                <td>Cấu trúc dữ liệu</td>
+                                <td class="score">7.5</td>
+                                <td class="verified">Đã cập nhật</td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    <div class="student">
+                                        <div class="student-avatar">PD</div>
+                                        <div class="student-name">
+                                            <strong>Phạm Dũng</strong>
+                                            <small>Sinh viên</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>SV004</td>
+                                <td>Blockchain</td>
+                                <td class="score">8.0</td>
+                                <td class="verified">Đã cập nhật</td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+                </div>
+
+            </section>
+
+        </div>
+
+        <footer class="footer">
+            © 2026 EduChain - Student Grade Management System
+            <br>
+            Blockchain Technology
+        </footer>
+
+    </main>
+
+</div>
+
+</body>
+</html>
