@@ -52,10 +52,12 @@
         <nav class="menu">
             <a href="/Home/Index"><span>▦</span> <span>Tổng quan</span></a>
             <a href="/Student/Index"><span>👨‍🎓</span> <span>Sinh viên</span></a>
-            <a href="#"><span>👨‍🏫</span> <span>Giảng viên</span></a>
+           <a href="/Teacher/Index">
+    <span class="menu-icon">👨‍🏫</span>
+    <span>Giảng viên</span>
+</a>
             <a href="/Subject/Index" class="active"><span>📚</span> <span>Môn học</span></a>
-            <a href="#"><span>📝</span> <span>Quản lý điểm</span></a>
-        </nav>
+            <a href="/Grade/Index"><span>📝</span> <span>Quản lý điểm</span></a>
         <div class="menu-title">HỆ THỐNG</div>
         <nav class="menu">
             <form asp-controller="Account" asp-action="Logout" method="post">

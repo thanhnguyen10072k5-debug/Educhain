@@ -16,7 +16,9 @@ namespace Educhain.Data
 
         // Bảng quản lý môn học
         public DbSet<Subject> Subjects { get; set; }
+        public DbSet<Teacher> Teachers { get; set; }
 
+        public DbSet<Grade> Grades { get; set; } // Thêm bảng quản lý điểm
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
