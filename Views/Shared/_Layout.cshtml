@@ -26,12 +26,6 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
-                        <!-- Nút kết nối MetaMask thêm vào đây -->
-                        <li class="nav-item ms-auto">
-                            <button id="btnConnect" onclick="connectMetaMask()" class="btn btn-warning text-dark font-weight-bold">
-                                🦊 Kết nối MetaMask
-                            </button>
-                        </li>
                     </ul>
                 </div>
             </div>
@@ -56,5 +50,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <!-- Nhúng file blockchain.js bạn vừa tạo -->
     <script src="~/js/blockchain.js"></script>
+<!-- Nút kết nối MetaMask -->
+<button id="btnConnect" onclick="connectMetaMask()" class="btn text-dark font-weight-bold" 
+        style="position: fixed; top: 25px; right: 80px; z-index: 9999; background-color: #f6851b; color: white; border-radius: 8px; padding: 10px 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none;">
+    🦊 Kết nối MetaMask
+</button>
 </body>
 </html>
