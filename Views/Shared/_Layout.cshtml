@@ -26,6 +26,11 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
+                        <li class="nav-item ms-auto">
+                            <button id="btnConnect" onclick="connectMetaMask()" class="btn btn-warning text-dark font-weight-bold">
+                                Kết nối MetaMask
+                            </button>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -46,5 +51,9 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+    <!-- Nhúng thư viện Ethers.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <!-- Nhúng file blockchain.js bạn vừa tạo -->
+    <script src="~/js/blockchain.js"></script>
 </body>
 </html>
